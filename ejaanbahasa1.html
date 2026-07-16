@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejaan Ria: Cabaran Mengeja Kanak-Kanak</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Fredoka One', 'Nunito', 'Segoe UI', sans-serif;
+            color: #2c3e50;
+        }
+
+        /* Latar Belakang Kartun Berwarna-warni */
+        #background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #a8e6cf 0%, #dcedc1 100%);
+            z-index: -3;
+        }
+
+        /* Kanvas untuk Objek Bergerak (Gelembung & Bintang) */
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -2;
+            pointer-events: none;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Paparan HUD Atas */
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 650px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 4px solid #fff;
+            border-radius: 25px;
+            padding: 10px 25px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            margin-bottom: 20px;
+            z-index: 10;
+        }
+
+        .hud-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hud-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #7f8c8d;
+            font-weight: bold;
+        }
+
+        .hud-value {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: #ff7675;
+            text-shadow: 1px 1px 0px #fff;
+        }
+
+        /* Kad Papan Permainan */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 6px solid #fff;
+            border-radius: 30px;
+            padding: 30px;
+            width: 100%;
+            max-width: 650px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 5;
+        }
+
+        /* Kotak Gambar Emojii */
+        .picture-box {
+            width: 160px;
+            height: 160px;
+            background: radial-gradient(circle, #ffe66d 0%, #ffc300 100%);
+            border: 5px solid #fff;
+            border-radius: 50%;
+            margin: 0 auto 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 6rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+            animation: floaty 3s ease-in-out infinite;
+        }
+
+        @keyframes floaty {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(2deg); }
+        }
+
+        .hint-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #57606f;
+            margin-bottom: 15px;
+        }
+
+        /* Petak Ejaan Word Slots */
+        .slots-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .letter-slot {
+            width: 52px;
+            height: 58px;
+            background: #f1f2f6;
+            border: 3px dashed #b2bec3;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #2c3e50;
+            text-transform: uppercase;
+            box-shadow: inset 0 4px 6px rgba(0,0,0,0.05);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .letter-slot.filled {
+            background: #fff;
+            border: 3px solid #ff7675;
+            color: #ff7675;
+            box-shadow: 0 5px 0px #e84393, 0 6px 12px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+        }
+
+        /* Pilihan Huruf Skrambel */
+        .tiles-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+            min-height: 70px;
+            align-items: center;
+        }
+
+        .letter-tile {
+            width: 52px;
+            height: 58px;
+            background: #ffe66d;
+            border: 3px solid #ffcc00;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #2d3436;
+            text-transform: uppercase;
+            cursor: pointer;
+            box-shadow: 0 5px 0px #d3a000, 0 6px 12px rgba(0,0,0,0.1);
+            transition: all 0.15s;
+        }
+
+        .letter-tile:hover {
+            transform: translateY(-2px);
+            background: #fff1a8;
+        }
+
+        .letter-tile:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0px #d3a000;
+        }
+
+        .letter-tile.used {
+            opacity: 0.2;
+            pointer-events: none;
+            transform: scale(0.9);
+        }
+
+        /* Skrin Menu */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #00b894, #55efc4);
+            border: 4px solid #fff;
+            color: white;
+            padding: 15px 45px;
+            font-size: 1.6rem;
+            font-weight: 900;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            transition: all 0.2s;
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.15);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+        }
+
+        .btn-orange {
+            background: linear-gradient(135deg, #ff9f43, #ffb8b8);
+        }
+
+        .title {
+            font-size: 4.2rem;
+            font-weight: 900;
+            margin: 0 0 10px 0;
+            color: #ff7675;
+            text-shadow: 4px 4px 0px #fff, 6px 6px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #636e72;
+            margin-bottom: 40px;
+            font-weight: bold;
+            background: rgba(255,255,255,0.8);
+            padding: 8px 24px;
+            border-radius: 20px;
+        }
+
+        .success-banner {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #00b894;
+            margin-top: 15px;
+            height: 35px;
+        }
+
+        .actions-row {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .action-btn {
+            padding: 10px 22px;
+            font-size: 0.95rem;
+            border-radius: 15px;
+            background: #0984e3;
+            border: 3px solid #fff;
+            color: white;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.08);
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            background: #74b9ff;
+        }
+
+        /* Animasi */
+        .pop-animation {
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes pop {
+            0% { transform: scale(0.6); }
+            100% { transform: scale(1); }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="background"></div>
+    <canvas id="cartoonCanvas"></canvas>
+
+    <div class="game-container">
+
+        <div id="start-screen" class="screen active">
+            <h1 class="title">EJAAN RIA</h1>
+            <p class="subtitle">✨ Pilih Huruf & Eja Nama Objek! (Umur 7-12) ✨</p>
+            <button class="btn" onclick="startGame()">MULA MAIN! 🎮</button>
+        </div>
+
+        <div id="play-screen" class="screen">
+            <div class="hud">
+                <div class="hud-item">
+                    <span class="hud-label">Bintang</span>
+                    <span id="score-display" class="hud-value">0 ⭐</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Tahap</span>
+                    <span id="level-display" class="hud-value">1</span>
+                </div>
+                <div class="hud-item">
+                    <span class="hud-label">Kemajuan</span>
+                    <span id="progress-display" class="hud-value">1/5</span>
+                </div>
+            </div>
+
+            <div class="card" id="game-card">
+                <div class="picture-box" id="picture-emoji">🐱</div>
+                <div class="hint-text" id="hint-category">Haiwan</div>
+                
+                <div class="slots-container" id="slots-container"></div>
+                <div class="tiles-container" id="tiles-container"></div>
+
+                <div class="success-banner" id="feedback-banner"></div>
+
+                <div class="actions-row">
+                    <button class="action-btn" style="background: #d63031" onclick="clearSpell()">Padam 🔄</button>
+                    <button class="action-btn" style="background: #fdcb6e; color: #2d3436;" onclick="giveHint()">Pembayang 💡</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="win-screen" class="screen">
+            <h1 class="title">TAHNIAH! KAMU HEBAT!</h1>
+            <p class="subtitle" id="final-score-text">Kamu berjaya mengumpul 50 Bintang!</p>
+            <button class="btn btn-orange" onclick="startGame()">MAIN SEMULA 🔄</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Web Audio Synthesizer (Kesan Bunyi Mesra Kanak-kanak) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'click') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.08);
+            } else if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); // E5
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.16); // G5
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(160, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+            } else if (type === 'hint') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(700, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1100, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            } else if (type === 'levelup') {
+                const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99];
+                notes.forEach((freq, index) => {
+                    const o = audioCtx.createOscillator();
+                    const g = audioCtx.createGain();
+                    o.connect(g); g.connect(audioCtx.destination);
+                    o.type = 'sine';
+                    o.frequency.setValueAtTime(freq, audioCtx.currentTime + (index * 0.07));
+                    g.gain.setValueAtTime(0.15, audioCtx.currentTime + (index * 0.07));
+                    g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (index * 0.07) + 0.15);
+                    o.start(audioCtx.currentTime + (index * 0.07));
+                    o.stop(audioCtx.currentTime + (index * 0.07) + 0.2);
+                });
+            }
+        }
+
+        // --- Pangkalan Data Perkataan (Bahasa Malaysia) ---
+        const levelWords = {
+            1: [
+                { word: 'KUCING', emoji: '🐱', cat: 'Haiwan Comel' },
+                { word: 'KERETA', emoji: '🚗', cat: 'Kenderaan' },
+                { word: 'EPAL', emoji: '🍎', cat: 'Buah-buahan' },
+                { word: 'RUMAH', emoji: '🏠', cat: 'Tempat Tinggal' },
+                { word: 'BUKU', emoji: '📘', cat: 'Barangan Sekolah' }
+            ],
+            2: [
+                { word: 'BURUNG', emoji: '🐦', cat: 'Haiwan Terbang' },
+                { word: 'PISANG', emoji: '🍌', cat: 'Buah-buahan' },
+                { word: 'KASUT', emoji: '👟', cat: 'Pakaian' },
+                { word: 'BASIKAL', emoji: '🚲', cat: 'Kenderaan' },
+                { word: 'BUNGA', emoji: '🌹', cat: 'Tumbuhan' }
+            ],
+            3: [
+                { word: 'HARIMAU', emoji: '🐯', cat: 'Haiwan Liar' },
+                { word: 'SEKOLAH', emoji: '🏫', cat: 'Tempat Belajar' },
+                { word: 'MATAHARI', emoji: '☀️', cat: 'Alam Semulajadi' },
+                { word: 'TEMBIKAI', emoji: '🍉', cat: 'Buah yang Besar' },
+                { word: 'KOMPUTER', emoji: '💻', cat: 'Barangan Elektronik' }
+            ]
+        };
+
+        // --- Variabel Permainan ---
+        let score = 0;
+        let currentLevel = 1;
+        let currentWordIndex = 0;
+        let currentWord = {};
+        let userSpelling = [];
+        let tileLetterMapping = [];
+
+        // --- Animasi Latar Belakang Gelembung Kartun ---
+        const canvas = document.getElementById('cartoonCanvas');
+        const ctx = canvas.getContext('2d');
+        let backgroundBubbles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Bubble {
+            constructor() {
+                this.reset();
+                this.y = Math.random() * canvas.height;
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = canvas.height + 40;
+                this.radius = Math.random() * 20 + 8;
+                this.speedY = Math.random() * -0.6 - 0.3;
+                this.speedX = Math.random() * 0.4 - 0.2;
+                this.color = `hsla(${Math.random() * 360}, 85%, 75%, 0.35)`;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.y < -40) this.reset();
+            }
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                // Kilauan cahaya di dalam gelembung
+                ctx.beginPath();
+                ctx.arc(this.x - this.radius/3, this.y - this.radius/3, this.radius/4, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.fill();
+            }
+        }
+
+        function initBackground() {
+            backgroundBubbles = [];
+            for (let i = 0; i < 25; i++) {
+                backgroundBubbles.push(new Bubble());
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            backgroundBubbles.forEach(b => {
+                b.update();
+                b.draw();
+            });
+            requestAnimationFrame(animate);
+        }
+        initBackground();
+        animate();
+
+        // --- Pengawal Permainan ---
+        function startGame() {
+            score = 0;
+            currentLevel = 1;
+            currentWordIndex = 0;
+            showScreen('play-screen');
+            loadWord();
+        }
+
+        function loadWord() {
+            const list = levelWords[currentLevel];
+            currentWord = list[currentWordIndex];
+            userSpelling = Array(currentWord.word.length).fill(null);
+            
+            document.getElementById('picture-emoji').innerText = currentWord.emoji;
+            document.getElementById('hint-category').innerText = `Kategori: ${currentWord.cat}`;
+            document.getElementById('picture-emoji').classList.add('pop-animation');
+            
+            setTimeout(() => {
+                document.getElementById('picture-emoji').classList.remove('pop-animation');
+            }, 400);
+
+            document.getElementById('feedback-banner').innerText = "";
+            updateHUD();
+            buildSlots();
+            buildTiles();
+        }
+
+        function buildSlots() {
+            const container = document.getElementById('slots-container');
+            container.innerHTML = "";
+            userSpelling.forEach((_, index) => {
+                const slot = document.createElement('div');
+                slot.className = 'letter-slot';
+                slot.id = `slot-${index}`;
+                slot.onclick = () => removeLetterFromSlot(index);
+                container.appendChild(slot);
+            });
+        }
+
+        function buildTiles() {
+            const container = document.getElementById('tiles-container');
+            container.innerHTML = "";
+
+            let lettersArray = currentWord.word.split('');
+            const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            
+            // Tambah 2 huruf rawak sebagai cabaran extra
+            while (lettersArray.length < currentWord.word.length + 2) {
+                let randomLetter = alphabet[Math.floor(Math.random() * 26)];
+                if (!lettersArray.includes(randomLetter)) {
+                    lettersArray.push(randomLetter);
+                }
+            }
+
+            // Rawakkan kedudukan huruf (Shuffle)
+            lettersArray.sort(() => Math.random() - 0.5);
+            tileLetterMapping = lettersArray;
+
+            lettersArray.forEach((letter, index) => {
+                const tile = document.createElement('div');
+                tile.className = 'letter-tile';
+                tile.innerText = letter;
+                tile.id = `tile-${index}`;
+                tile.onclick = () => selectTile(letter, index);
+                container.appendChild(tile);
+            });
+        }
+
+        function selectTile(letter, tileIndex) {
+            const emptyIdx = userSpelling.findIndex(v => v === null);
+            if (emptyIdx === -1) return; 
+
+            playSound('click');
+            userSpelling[emptyIdx] = { letter, tileIndex };
+            
+            document.getElementById(`tile-${tileIndex}`).classList.add('used');
+
+            const slot = document.getElementById(`slot-${emptyIdx}`);
+            slot.innerText = letter;
+            slot.classList.add('filled');
+
+            checkSpelling();
+        }
+
+        function removeLetterFromSlot(slotIndex) {
+            const data = userSpelling[slotIndex];
+            if (!data) return;
+
+            playSound('click');
+            document.getElementById(`tile-${data.tileIndex}`).classList.remove('used');
+
+            userSpelling[slotIndex] = null;
+            const slot = document.getElementById(`slot-${slotIndex}`);
+            slot.innerText = "";
+            slot.classList.remove('filled');
+        }
+
+        function clearSpell() {
+            playSound('click');
+            userSpelling.forEach((_, idx) => removeLetterFromSlot(idx));
+        }
+
+        function giveHint() {
+            const correctLetters = currentWord.word.split('');
+            let targetIdx = -1;
+
+            for (let i = 0; i < correctLetters.length; i++) {
+                if (!userSpelling[i] || userSpelling[i].letter !== correctLetters[i]) {
+                    targetIdx = i;
+                    break;
+                }
+            }
+
+            if (targetIdx === -1) return;
+
+            if (userSpelling[targetIdx]) {
+                removeLetterFromSlot(targetIdx);
+            }
+
+            const neededLetter = correctLetters[targetIdx];
+            let foundTileIdx = -1;
+            for (let i = 0; i < tileLetterMapping.length; i++) {
+                if (tileLetterMapping[i] === neededLetter) {
+                    const tileEl = document.getElementById(`tile-${i}`);
+                    if (!tileEl.classList.contains('used')) {
+                        foundTileIdx = i;
+                        break;
+                    }
+                }
+            }
+
+            if (foundTileIdx !== -1) {
+                playSound('hint');
+                selectTile(neededLetter, foundTileIdx);
+            }
+        }
+
+        function checkSpelling() {
+            const anyEmpty = userSpelling.some(v => v === null);
+            if (anyEmpty) return;
+
+            const spellingStr = userSpelling.map(v => v.letter).join('');
+            const card = document.getElementById('game-card');
+
+            if (spellingStr === currentWord.word) {
+                playSound('correct');
+                score += 10;
+                document.getElementById('feedback-banner').innerText = "⭐ SYABAS! BETUL! ⭐";
+                document.getElementById('feedback-banner').style.color = "#00b894";
+                
+                card.classList.add('pop-animation');
+                setTimeout(() => card.classList.remove('pop-animation'), 400);
+
+                setTimeout(advanceWord, 1400);
+            } else {
+                playSound('wrong');
+                document.getElementById('feedback-banner').innerText = "Cuba lagi! 🤔";
+                document.getElementById('feedback-banner').style.color = "#ff7675";
+            }
+        }
+
+        function advanceWord() {
+            currentWordIndex++;
+            const list = levelWords[currentLevel];
+            
+            if (currentWordIndex >= list.length) {
+                currentWordIndex = 0;
+                currentLevel++;
+                
+                if (levelWords[currentLevel]) {
+                    playSound('levelup');
+                    alert(`🌟 Tahniah! Kamu naik ke Tahap ${currentLevel}! 🌟`);
+                    loadWord();
+                } else {
+                    playSound('levelup');
+                    document.getElementById('final-score-text').innerText = `Hebat! Kamu mengumpul ${score} Bintang dan menamatkan semua ejaan!`;
+                    showScreen('win-screen');
+                }
+            } else {
+                loadWord();
+            }
+        }
+
+        function updateHUD() {
+            document.getElementById('score-display').innerText = `${score} ⭐`;
+            document.getElementById('level-display').innerText = currentLevel;
+            document.getElementById('progress-display').innerText = `${currentWordIndex + 1}/${levelWords[currentLevel].length}`;
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
