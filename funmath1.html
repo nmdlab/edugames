@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quest: Standard 1-3 Adventure</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif;
+            background: linear-gradient(135deg, #1f1c2c 0%, #928dab 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+            color: #fff;
+        }
+
+        .game-container {
+            background-color: #2c2541;
+            border: 5px solid #FFD166;
+            border-radius: 20px;
+            padding: 22px 20px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            max-width: 480px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #FFD166;
+            font-size: 1.8rem;
+            margin: 0 0 15px 0;
+            text-shadow: 2px 2px #000;
+        }
+
+        /* Slightly expanded Battle Arena */
+        .battle-arena {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 12px 8px;
+            margin-bottom: 18px;
+            border: 2px solid #443863;
+        }
+
+        .character {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 42%;
+        }
+
+        .avatar {
+            font-size: 2.8rem;
+            margin-bottom: 4px;
+            transition: transform 0.2s ease;
+        }
+
+        .avatar.attack {
+            transform: scale(1.2) translateX(10px);
+        }
+
+        .avatar.hit {
+            animation: flash 0.4s linear;
+        }
+
+        @keyframes flash {
+            0%, 100% { opacity: 1; transform: translateX(0); }
+            20%, 60% { opacity: 0; transform: translateX(-5px); }
+            40%, 80% { opacity: 1; transform: translateX(5px); }
+        }
+
+        .hp-bar-container {
+            width: 100%;
+            background-color: #555;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #000;
+        }
+
+        .hp-bar {
+            height: 12px;
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+
+        .hero-hp { background-color: #FF6B6B; }
+        .monster-hp { background-color: #6BCB77; }
+
+        .char-label {
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        /* Roomy Quest Box */
+        .quest-box {
+            background-color: #3d335c;
+            border: 2px dashed #4D96FF;
+            border-radius: 12px;
+            padding: 20px 5px;
+            margin-bottom: 20px;
+            font-size: 2.4rem;
+            font-weight: bold;
+            text-shadow: 2px 2px #000;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .btn-choice {
+            background-color: #4D96FF;
+            color: white;
+            border: none;
+            border-bottom: 4px solid #1c73eb;
+            border-radius: 10px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            padding: 10px 0;
+            cursor: pointer;
+            transition: all 0.1s ease;
+        }
+
+        .btn-choice:active {
+            transform: translateY(2px);
+            border-bottom-width: 2px;
+        }
+
+        .btn-choice.correct {
+            background-color: #6BCB77 !important;
+            border-bottom-color: #3b9a47 !important;
+        }
+
+        .btn-choice.wrong {
+            background-color: #FF6B6B !important;
+            border-bottom-color: #cc3b3b !important;
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        #feedback {
+            font-size: 1.2rem;
+            height: 28px;
+            margin-bottom: 12px;
+            font-weight: bold;
+        }
+
+        .success-text { color: #6BCB77; }
+        .try-again-text { color: #FF6B6B; }
+
+        #next-btn {
+            background-color: #FFD166;
+            color: #333;
+            border: none;
+            border-bottom: 4px solid #e6b333;
+            border-radius: 10px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            padding: 10px 35px;
+            cursor: pointer;
+            display: none;
+        }
+
+        #next-btn:hover { background-color: #ffe094; }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <h1>⚔️ Math Quest 🔮</h1>
+        
+        <div class="battle-arena">
+            <div class="character">
+                <div class="avatar" id="hero-avatar">🧙‍♂️</div>
+                <div class="hp-bar-container">
+                    <div class="hp-bar hero-hp" id="hero-hp-bar"></div>
+                </div>
+                <div class="char-label">Hero HP</div>
+            </div>
+            
+            <div style="font-size: 1.2rem; font-weight: bold; color: #FFD166;">VS</div>
+
+            <div class="character">
+                <div class="avatar" id="monster-avatar">👹</div>
+                <div class="hp-bar-container">
+                    <div class="hp-bar monster-hp" id="monster-hp-bar"></div>
+                </div>
+                <div class="char-label" id="monster-label">Level 1</div>
+            </div>
+        </div>
+        
+        <div class="quest-box" id="question-display">2 + 2 = ?</div>
+        
+        <div class="options-container" id="options"></div>
+        
+        <div id="feedback"></div>
+        <button id="next-btn" onclick="nextQuestion()">Continue ➡️</button>
+    </div>
+
+    <script>
+        let heroMaxHp = 3;
+        let heroHp = 3;
+        let monsterMaxHp = 3;
+        let monsterHp = 3;
+        let currentLevel = 1;
+        
+        let correctAnswer = 0;
+        let hasAnswered = false;
+
+        const monsters = ['👹', '🐉', '👾', '👻', '🦁', '🤖'];
+        const operations = ['+', '-', '×', '÷'];
+
+        function startGame() {
+            hasAnswered = false;
+            document.getElementById('feedback').innerHTML = '';
+            document.getElementById('next-btn').style.display = 'none';
+            
+            const op = operations[Math.floor(Math.random() * operations.length)];
+            let num1, num2, questionText;
+
+            if (op === '+') {
+                num1 = Math.floor(Math.random() * 60) + 10;
+                num2 = Math.floor(Math.random() * 30) + 5;
+                correctAnswer = num1 + num2;
+                questionText = `${num1} + ${num2} = ?`;
+            } 
+            else if (op === '-') {
+                num1 = Math.floor(Math.random() * 70) + 20;
+                num2 = Math.floor(Math.random() * (num1 - 5)) + 5;
+                correctAnswer = num1 - num2;
+                questionText = `${num1} - ${num2} = ?`;
+            } 
+            else if (op === '×') {
+                num1 = Math.floor(Math.random() * 9) + 2;
+                num2 = Math.floor(Math.random() * 9) + 2;
+                correctAnswer = num1 * num2;
+                questionText = `${num1} × ${num2} = ?`;
+            } 
+            else if (op === '÷') {
+                num2 = Math.floor(Math.random() * 8) + 2;
+                correctAnswer = Math.floor(Math.random() * 9) + 2;
+                num1 = num2 * correctAnswer;
+                questionText = `${num1} ÷ ${num2} = ?`;
+            }
+
+            document.getElementById('question-display').innerText = questionText;
+
+            let choices = [correctAnswer];
+            while (choices.length < 4) {
+                let offset = Math.floor(Math.random() * 10) + 1;
+                let wrongChoice = Math.random() > 0.5 ? correctAnswer + offset : correctAnswer - offset;
+                if (wrongChoice >= 0 && !choices.includes(wrongChoice)) {
+                    choices.push(wrongChoice);
+                }
+            }
+            choices.sort(() => Math.random() - 0.5);
+
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            choices.forEach(num => {
+                const button = document.createElement('button');
+                button.className = 'btn-choice';
+                button.innerText = num;
+                button.onclick = () => checkAnswer(num, button);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selectedNum, clickedButton) {
+            if (hasAnswered) return;
+
+            const heroAvatar = document.getElementById('hero-avatar');
+            const monsterAvatar = document.getElementById('monster-avatar');
+
+            if (selectedNum === correctAnswer) {
+                hasAnswered = true;
+                clickedButton.classList.add('correct');
+                
+                heroAvatar.classList.add('attack');
+                setTimeout(() => heroAvatar.classList.remove('attack'), 300);
+                
+                monsterHp--;
+                updateBars();
+                
+                document.getElementById('feedback').innerHTML = '<span class="success-text">💥 Direct Hit!</span>';
+                document.getElementById('next-btn').style.display = 'inline-block';
+            } else {
+                clickedButton.classList.add('wrong');
+                
+                monsterAvatar.classList.add('attack');
+                setTimeout(() => monsterAvatar.classList.remove('attack'), 300);
+                
+                heroHp--;
+                updateBars();
+                
+                document.getElementById('feedback').innerHTML = '<span class="try-again-text">🛡️ Blocked by Monster!</span>';
+                
+                if (heroHp <= 0) {
+                    hasAnswered = true;
+                    document.getElementById('feedback').innerHTML = '<span class="try-again-text">💀 Game Over!</span>';
+                    document.getElementById('next-btn').innerText = "Respawn 🔁";
+                    document.getElementById('next-btn').style.display = 'inline-block';
+                }
+
+                setTimeout(() => clickedButton.classList.remove('wrong'), 300);
+            }
+        }
+
+        function updateBars() {
+            const heroPct = Math.max((heroHp / heroMaxHp) * 100, 0);
+            const monsterPct = Math.max((monsterHp / monsterMaxHp) * 100, 0);
+            
+            document.getElementById('hero-hp-bar').style.width = heroPct + '%';
+            document.getElementById('monster-hp-bar').style.width = monsterPct + '%';
+
+            if (monsterHp <= 0) document.getElementById('monster-avatar').classList.add('hit');
+            if (heroHp <= 0) document.getElementById('hero-avatar').classList.add('hit');
+        }
+
+        function nextQuestion() {
+            if (heroHp <= 0) {
+                heroHp = heroMaxHp;
+                monsterHp = monsterMaxHp;
+                currentLevel = 1;
+                document.getElementById('monster-avatar').innerText = monsters[0];
+                document.getElementById('monster-label').innerText = `Level ${currentLevel}`;
+                document.getElementById('next-btn').innerText = "Continue ➡️";
+                updateBars();
+                startGame();
+                return;
+            }
+
+            if (monsterHp <= 0) {
+                currentLevel++;
+                monsterHp = monsterMaxHp;
+                const nextMonster = monsters[Math.floor(Math.random() * monsters.length)];
+                document.getElementById('monster-avatar').innerText = nextMonster;
+                document.getElementById('monster-label').innerText = `Level ${currentLevel}`;
+                document.getElementById('monster-avatar').classList.remove('hit');
+                updateBars();
+            }
+            
+            startGame();
+        }
+
+        updateBars();
+        startGame();
+    </script>
+</body>
+</html>
