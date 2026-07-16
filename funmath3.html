@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Dash: Race Against the Clock</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+        }
+
+        /* Beautiful Animated Moving Background */
+        #background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(125deg, #2c3e50, #2980b9, #8e44ad, #2c3e50);
+            background-size: 400% 400%;
+            animation: gradientMove 15s ease infinite;
+            z-index: -2;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+        }
+
+        /* Game Container */
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+        }
+
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 15px 25px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            margin-bottom: 20px;
+        }
+
+        .hud-item {
+            text-align: center;
+        }
+
+        .hud-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #bdc3c7;
+        }
+
+        .hud-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #f1c40f;
+        }
+
+        /* Main Display Card */
+        .card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .question {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+        }
+
+        /* Input and Button Styles */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #1abc9c, #16a085);
+            border: none;
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            filter: brightness(1.1);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        /* Progress Bar */
+        .timer-bar-container {
+            width: 100%;
+            height: 12px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 6px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .timer-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #2ecc71, #e74c3c);
+            background-size: 200% 100%;
+            transition: width 0.1s linear;
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.5);
+            background: linear-gradient(45deg, #fff, #f1c40f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            color: #ecf0f1;
+        }
+
+        .large-btn {
+            padding: 20px 50px;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, #e67e22, #d35400);
+            border-radius: 50px;
+        }
+
+        /* Visual Feedback Flash */
+        .flash-correct { animation: flashG 0.4s ease-out; }
+        .flash-wrong { animation: flashR 0.4s ease-out; }
+        @keyframes flashG { 0%, 100% { background: rgba(255,255,255,0.15); } 50% { background: rgba(46, 204, 113, 0.5); } }
+        @keyframes flashR { 0%, 100% { background: rgba(255,255,255,0.15); } 50% { background: rgba(231, 76, 60, 0.5); } }
+    </style>
+</head>
+<body>
+
+    <div id="background"></div>
+    <canvas id="particleCanvas"></canvas>
+
+    <div class="game-container">
+        
+        <div id="start-screen" class="screen active">
+            <h1 class="title">MATH DASH</h1>
+            <p class="subtitle">Race Against the Clock! (Ages 10-12)</p>
+            <button class="btn large-btn" onclick="startGame()">START GAME</button>
+        </div>
+
+        <div id="play-screen" class="screen">
+            <div class="hud">
+                <div class="hud-item">
+                    <div class="hud-label">Score</div>
+                    <div id="score-display" class="hud-value">0</div>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Level</div>
+                    <div id="level-display" class="hud-value">1</div>
+                </div>
+                <div class="hud-item">
+                    <div class="hud-label">Target</div>
+                    <div id="target-display" class="hud-value">0/5</div>
+                </div>
+            </div>
+
+            <div id="game-card" class="card">
+                <div class="timer-bar-container">
+                    <div id="timer-bar" class="timer-bar"></div>
+                </div>
+                <div id="question-text" class="question">25 + 16 × 3</div>
+                <div class="options-grid">
+                    <button class="btn option-btn" onclick="checkAnswer(this)">0</button>
+                    <button class="btn option-btn" onclick="checkAnswer(this)">0</button>
+                    <button class="btn option-btn" onclick="checkAnswer(this)">0</button>
+                    <button class="btn option-btn" onclick="checkAnswer(this)">0</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="game-over-screen" class="screen">
+            <h1 class="title">Time's Up!</h1>
+            <p class="subtitle" id="final-score-text">You scored 0 points</p>
+            <button class="btn large-btn" onclick="startGame()">PLAY AGAIN</button>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Web Audio System (Synthesized sounds, no external links needed!) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.25);
+            } else if (type === 'levelup') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(392.00, audioCtx.currentTime); // G5
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime + 0.15); // C6
+                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            }
+        }
+
+        // --- Game Logic Variables ---
+        let score = 0;
+        let level = 1;
+        let correctInLevel = 0;
+        let currentAnswer = 0;
+        let timerInterval;
+        let timeLeft = 100; 
+        let maxTime = 12; // Seconds per question
+        const targetPerLevel = 5;
+
+        // --- Beautiful Background Particles ---
+        const canvas = document.getElementById('particleCanvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 4 + 1;
+                this.speedX = Math.random() * 0.6 - 0.3;
+                this.speedY = Math.random() * -0.8 - 0.2; // Move upwards gently
+                this.alpha = Math.random() * 0.5 + 0.2;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.y < 0) {
+                    this.y = canvas.height;
+                    this.x = Math.random() * canvas.width;
+                }
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            for (let i = 0; i < 60; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+            requestAnimationFrame(animateParticles);
+        }
+        initParticles();
+        animateParticles();
+
+        // --- Math Engine (Tailored for Ages 10-12) ---
+        function generateQuestion() {
+            let questionText = "";
+            let answer = 0;
+            
+            // Level 1-2: Advanced operations & Order of Operations
+            if (level <= 2) {
+                let type = Math.floor(Math.random() * 2);
+                if (type === 0) { // Order of operations: a + b * c
+                    let a = Math.floor(Math.random() * 20) + 5;
+                    let b = Math.floor(Math.random() * 10) + 2;
+                    let c = Math.floor(Math.random() * 5) + 3;
+                    questionText = `${a} + ${b} × ${c}`;
+                    answer = a + (b * c);
+                } else { // Division with remainders or clean larger division
+                    let b = Math.floor(Math.random() * 11) + 2;
+                    let answerTemp = Math.floor(Math.random() * 12) + 5;
+                    let a = b * answerTemp;
+                    questionText = `${a} ÷ ${b}`;
+                    answer = answerTemp;
+                }
+            } 
+            // Level 3-4: Simple fractions and Decimals
+            else if (level <= 4) {
+                let type = Math.floor(Math.random() * 2);
+                if (type === 0) { // Decimals adding
+                    let a = (Math.random() * 10 + 1).toFixed(1);
+                    let b = (Math.random() * 10 + 1).toFixed(1);
+                    questionText = `${a} + ${b}`;
+                    answer = parseFloat((parseFloat(a) + parseFloat(b)).toFixed(1));
+                } else { // Fractions: dynamic half/quarters
+                    let options = [
+                        {q: "1/2 of 64", a: 32},
+                        {q: "3/4 of 24", a: 18},
+                        {q: "1/3 of 90", a: 30},
+                        {q: "2/5 of 50", a: 20},
+                        {q: "3/8 of 32", a: 12}
+                    ];
+                    let chosen = options[Math.floor(Math.random() * options.length)];
+                    questionText = chosen.q;
+                    answer = chosen.a;
+                }
+            } 
+            // Level 5+: Simple Pre-Algebra (Find x)
+            else {
+                let x = Math.floor(Math.random() * 15) + 4;
+                let modifier = Math.floor(Math.random() * 2);
+                if (modifier === 0) {
+                    let b = Math.floor(Math.random() * 20) + 5;
+                    questionText = `If  x + ${b} = ${x + b},  find x`;
+                } else {
+                    let mult = Math.floor(Math.random() * 3) + 2;
+                    questionText = `If  ${mult}x = ${mult * x},  find x`;
+                }
+                answer = x;
+            }
+
+            currentAnswer = answer;
+            document.getElementById('question-text').innerText = questionText;
+            setupOptions(answer);
+        }
+
+        function setupOptions(correct) {
+            let buttons = document.querySelectorAll('.option-btn');
+            let correctIdx = Math.floor(Math.random() * 4);
+            let usedAnswers = [correct];
+
+            buttons.forEach((btn, idx) => {
+                if (idx === correctIdx) {
+                    btn.innerText = correct;
+                } else {
+                    let wrong;
+                    do {
+                        // Generate dynamic look-alike wrong answers
+                        let offset = (Math.floor(Math.random() * 7) + 1) * (Math.random() < 0.5 ? -1 : 1);
+                        wrong = typeof correct === 'float' ? parseFloat((correct + offset * 0.1).toFixed(1)) : correct + offset;
+                    } while (usedAnswers.includes(wrong) || wrong < 0);
+                    
+                    usedAnswers.push(wrong);
+                    btn.innerText = wrong;
+                }
+            });
+        }
+
+        // --- Core Game Controllers ---
+        function startGame() {
+            score = 0;
+            level = 1;
+            correctInLevel = 0;
+            maxTime = 12; // fresh timer limit
+            
+            showScreen('play-screen');
+            updateHUD();
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            generateQuestion();
+            startTimer();
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            let timeRemaining = maxTime;
+            const timerBar = document.getElementById('timer-bar');
+            
+            timerInterval = setInterval(() => {
+                timeRemaining -= 0.1;
+                let percentage = (timeRemaining / maxTime) * 100;
+                timerBar.style.width = `${percentage}%`;
+
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    gameOver();
+                }
+            }, 100);
+        }
+
+        function checkAnswer(button) {
+            clearInterval(timerInterval);
+            const card = document.getElementById('game-card');
+            let chosen = parseFloat(button.innerText);
+
+            if (chosen === currentAnswer) {
+                playSound('correct');
+                score += level * 10 + Math.floor(level * 2);
+                correctInLevel++;
+                
+                card.classList.add('flash-correct');
+                setTimeout(() => card.classList.remove('flash-correct'), 400);
+
+                if (correctInLevel >= targetPerLevel) {
+                    level++;
+                    correctInLevel = 0;
+                    maxTime = Math.max(6, maxTime - 1.5); // Increase speed challenge
+                    playSound('levelup');
+                }
+            } else {
+                playSound('wrong');
+                card.classList.add('flash-wrong');
+                setTimeout(() => card.classList.remove('flash-wrong'), 400);
+            }
+
+            updateHUD();
+            setTimeout(nextQuestion, 400); // Small breathing pause before next round
+        }
+
+        function updateHUD() {
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('level-display').innerText = level;
+            document.getElementById('target-display').innerText = `${correctInLevel}/${targetPerLevel}`;
+        }
+
+        function gameOver() {
+            playSound('wrong');
+            document.getElementById('final-score-text').innerText = `Awesome effort! You scored ${score} points and reached Level ${level}!`;
+            showScreen('game-over-screen');
+        }
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+    </script>
+</body>
+</html>
