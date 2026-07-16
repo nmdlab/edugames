@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quest | Interactive Learning</title>
+    <style>
+        :root {
+            --primary: #4a90e2;
+            --secondary: #f5a623;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: var(--light);
+            color: var(--dark);
+        }
+
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .game-image {
+            width: 100%;
+            height: 200px;
+            background-color: #ddd;
+            object-fit: cover;
+        }
+
+        .game-info {
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .game-info h2 {
+            margin: 0 0 1rem 0;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        .play-button {
+            display: inline-block;
+            background-color: var(--secondary);
+            color: white;
+            padding: 0.8rem 2rem;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .play-button:hover {
+            background-color: #d48e1a;
+        }
+
+        footer {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Math Quest Arcade</h1>
+        <p>Choose a challenge and level up your skills!</p>
+    </header>
+
+    <div class="container">
+        <div class="game-grid">
+            
+            <!-- Game 1 -->
+            <div class="game-card">
+                <img src="addition-blitz.jpg" alt="Addition Blitz" class="game-image">
+                <div class="game-info">
+                    <h2>Addition Blitz</h2>
+                    <p>Race against the clock to solve sums!</p>
+                    <a href="addition.html" class="play-button">Play Now</a>
+                </div>
+            </div>
+
+            <!-- Game 2 -->
+            <div class="game-card">
+                <img src="fraction-forest.jpg" alt="Fraction Forest" class="game-image">
+                <div class="game-info">
+                    <h2>Fraction Forest</h2>
+                    <p>Navigate through the woods using slices.</p>
+                    <a href="fractions.html" class="play-button">Play Now</a>
+                </div>
+            </div>
+
+            <!-- Game 3 -->
+            <div class="game-card">
+                <img src="geometry-jump.jpg" alt="Geometry Jump" class="game-image">
+                <div class="game-info">
+                    <h2>Geometry Jump</h2>
+                    <p>Identify shapes to keep your character moving.</p>
+                    <a href="geometry.html" class="play-button">Play Now</a>
+                </div>
+            </div>
+
+            <!-- Game 4 -->
+            <div class="game-card">
+                <img src="multiplication-mania.jpg" alt="Multiplication Mania" class="game-image">
+                <div class="game-info">
+                    <h2>Table Master</h2>
+                    <p>Become a pro at multiplication tables.</p>
+                    <a href="multiplication.html" class="play-button">Play Now</a>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Math Quest. All rights reserved.</p>
+    </footer>
+
+</body>
+</html>
