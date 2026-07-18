@@ -1,79 +1,55 @@
 <!DOCTYPE html>
-<html lang="ms">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Cabaran Teka Perkataan</title>
+    <title>English Word Challenge</title>
     <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .game-container {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 40px;
-            border-radius: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            text-align: center;
-        }
-        #score { font-size: 1.2rem; font-weight: bold; color: #555; }
-        .sentence { font-size: 1.5rem; margin: 25px 0; }
-        input { padding: 10px; border-radius: 8px; border: 2px solid #ddd; }
-        button { padding: 10px 20px; background: #6c5ce7; color: white; border: none; border-radius: 8px; cursor: pointer; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f9ff; text-align: center; padding: 50px; }
+        .game-container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: inline-block; }
+        .sentence { font-size: 1.5rem; margin: 20px 0; }
+        .options { display: flex; justify-content: center; gap: 10px; margin-top: 20px; }
+        button { padding: 15px 25px; font-size: 1rem; cursor: pointer; border: none; border-radius: 10px; background: #6c5ce7; color: white; transition: 0.3s; }
+        button:hover { background: #a29bfe; }
+        #score { font-size: 1.2rem; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div class="game-container">
-    <h2>Permainan Teka Perkataan</h2>
-    <p id="score">Markah: 0</p>
+    <h2>English Word Challenge</h2>
+    <p id="score">Score: 0</p>
     <div class="sentence" id="sentence">The cat is ___ on the mat.</div>
-    <input type="text" id="answer" placeholder="Taip jawapan...">
-    <br><br>
-    <button onclick="checkAnswer()">Semak Jawapan</button>
+    
+    <div class="options">
+        <button onclick="checkAnswer('running')">running</button>
+        <button onclick="checkAnswer('sitting')">sitting</button>
+        <button onclick="checkAnswer('eating')">eating</button>
+    </div>
 </div>
 
 <script>
     let score = 0;
-    const correctAnswer = "sitting";
+    const correctAns = "sitting";
 
-    // Fungsi untuk menghasilkan bunyi
-    function playSound(type) {
+    function playSound(isCorrect) {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-
-        if (type === 'correct') {
-            oscillator.frequency.value = 600; // Nada tinggi untuk betul
-        } else {
-            oscillator.frequency.value = 200; // Nada rendah untuk salah
-        }
-
-        oscillator.start();
-        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
-        oscillator.stop(audioCtx.currentTime + 0.5);
+        const osc = audioCtx.createOscillator();
+        osc.connect(audioCtx.destination);
+        osc.frequency.value = isCorrect ? 600 : 200;
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
     }
 
-    function checkAnswer() {
-        const userAns = document.getElementById('answer').value.toLowerCase();
-        
-        if (userAns === correctAnswer) {
+    function checkAnswer(choice) {
+        if (choice === correctAns) {
             score += 10;
-            document.getElementById('score').innerHTML = "Markah: " + score;
-            playSound('correct');
-            alert("Tahniah! Betul! 🎉");
+            document.getElementById('score').innerText = "Score: " + score;
+            alert("Correct! Well done!");
+            playSound(true);
         } else {
-            playSound('wrong');
-            alert("Cuba lagi! ❌");
+            alert("Oops! Try again.");
+            playSound(false);
         }
-        document.getElementById('answer').value = ""; // Kosongkan input
     }
 </script>
 
