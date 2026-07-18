@@ -2,51 +2,98 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Mastermind: 50 Questions Challenge</title>
+    <title>English Mastermind: 50 Questions</title>
+    <!-- Library untuk kesan Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background: linear-gradient(135deg, #74ebd5, #9face6); min-height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; }
-        .game-card { background: white; padding: 40px; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 500px; text-align: center; }
-        .btn { display: block; width: 100%; margin: 10px 0; padding: 15px; border: none; border-radius: 15px; background: #6c5ce7; color: white; font-size: 1.1rem; cursor: pointer; transition: 0.3s; }
-        .btn:hover { background: #a29bfe; transform: scale(1.03); }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        body { 
+            font-family: 'Comic Sans MS', cursive; 
+            background: linear-gradient(270deg, #74ebd5, #9face6, #ff9a9e, #fad0c4);
+            background-size: 800% 800%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            margin: 0; 
+        }
+
+        .game-card { 
+            background: rgba(255, 255, 255, 0.95); 
+            padding: 40px; 
+            border-radius: 30px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); 
+            width: 100%; 
+            max-width: 500px; 
+            text-align: center; 
+            backdrop-filter: blur(10px);
+        }
+
+        .btn { 
+            display: block; 
+            width: 100%; 
+            margin: 10px 0; 
+            padding: 15px; 
+            border: none; 
+            border-radius: 15px; 
+            background: #6c5ce7; 
+            color: white; 
+            font-size: 1.2rem; 
+            cursor: pointer; 
+            transition: 0.3s; 
+        }
+        .btn:hover { background: #a29bfe; transform: scale(1.02); }
+
+        #feedback { font-weight: bold; margin: 15px 0; height: 25px; font-size: 1.3rem; }
         #progress-bar { width: 100%; height: 15px; background: #eee; border-radius: 10px; margin: 20px 0; overflow: hidden; }
         #fill { height: 100%; width: 0%; background: #00b894; transition: 0.5s; }
-        h1 { color: #2d3436; margin-top: 0; }
     </style>
 </head>
 <body>
 
 <div class="game-card">
-    <h1 id="level-indicator">Level 1</h1>
+    <h2 id="level-indicator">Level 1</h2>
     <div id="progress-bar"><div id="fill"></div></div>
-    <p id="score">Total Points: 0</p>
-    <h3 id="question">Loading...</h3>
+    <p id="score" style="font-size: 1.2rem;">Points: 0</p>
+    <h3 id="question" style="font-size: 1.5rem;">Loading...</h3>
+    <div id="feedback"></div>
     <div id="options"></div>
 </div>
 
 <script>
     const levels = [
-        [ {q: "The cat is ___ on the mat.", a: ["sitting", "run", "eat"], correct: "sitting"}, {q: "I ___ a student.", a: ["am", "is", "are"], correct: "am"}, {q: "She ___ an apple.", a: ["eat", "eats", "eating"], correct: "eats"}, {q: "They ___ playing football.", a: ["is", "are", "am"], correct: "are"}, {q: "This ___ my book.", a: ["is", "are", "be"], correct: "is"}, {q: "We ___ happy today.", a: ["are", "am", "is"], correct: "are"}, {q: "He ___ to school.", a: ["go", "goes", "going"], correct: "goes"}, {q: "Birds can ___ in the sky.", a: ["fly", "swim", "run"], correct: "fly"}, {q: "My name ___ Ali.", a: ["is", "are", "am"], correct: "is"}, {q: "I have ___ red car.", a: ["a", "an", "the"], correct: "a"} ],
-        [ {q: "He ___ football yesterday.", a: ["play", "played", "playing"], correct: "played"}, {q: "She ___ to the market.", a: ["go", "went", "gone"], correct: "went"}, {q: "They ___ a movie last night.", a: ["watch", "watched", "watching"], correct: "watched"}, {q: "I ___ a book last week.", a: ["read", "reads", "reading"], correct: "read"}, {q: "We ___ at the park.", a: ["are", "was", "were"], correct: "were"}, {q: "He ___ his homework.", a: ["did", "do", "does"], correct: "did"}, {q: "It ___ a sunny day.", a: ["was", "is", "were"], correct: "was"}, {q: "They ___ home early.", a: ["come", "came", "coming"], correct: "came"}, {q: "I ___ a song.", a: ["sing", "sang", "sung"], correct: "sang"}, {q: "She ___ the door.", a: ["open", "opened", "opening"], correct: "opened"} ],
-        [ {q: "This book is mine. It is ___.", a: ["my", "mine", "me"], correct: "mine"}, {q: "___ is my teacher.", a: ["He", "Him", "His"], correct: "He"}, {q: "The elephant is very ___.", a: ["big", "small", "thin"], correct: "big"}, {q: "She is a ___ girl.", a: ["happy", "happily", "happiness"], correct: "happy"}, {q: "This is ___ pencil.", a: ["her", "she", "hers"], correct: "her"}, {q: "They are ___ friends.", a: ["our", "we", "us"], correct: "our"}, {q: "The sun is ___.", a: ["hot", "cold", "wet"], correct: "hot"}, {q: "I love ___ family.", a: ["my", "me", "mine"], correct: "my"}, {q: "The house is very ___.", a: ["clean", "cleans", "cleaning"], correct: "clean"}, {q: "It is ___ bag.", a: ["his", "him", "he"], correct: "his"} ],
-        [ {q: "The cat is ___ the table.", a: ["under", "on", "in"], correct: "under"}, {q: "I walk ___ school.", a: ["to", "at", "in"], correct: "to"}, {q: "I like coffee ___ tea.", a: ["and", "but", "or"], correct: "and"}, {q: "She is fast ___ I am slow.", a: ["but", "and", "so"], correct: "but"}, {q: "The keys are ___ the bag.", a: ["in", "on", "at"], correct: "in"}, {q: "He stands ___ me.", a: ["beside", "in", "on"], correct: "beside"}, {q: "We play ___ school.", a: ["after", "in", "at"], correct: "after"}, {q: "It is sunny ___ hot.", a: ["and", "but", "so"], correct: "and"}, {q: "Wait ___ me!", a: ["for", "at", "to"], correct: "for"}, {q: "Look ___ the picture.", a: ["at", "in", "on"], correct: "at"} ],
-        [ {q: "By the time he arrived, the train had ___.", a: ["left", "leave", "leaving"], correct: "left"}, {q: "She ___ reading for two hours.", a: ["has been", "is", "was"], correct: "has been"}, {q: "If I ___ you, I would go.", a: ["were", "was", "am"], correct: "were"}, {q: "They ___ finished the work.", a: ["have", "has", "had"], correct: "have"}, {q: "She ___ to London next year.", a: ["will go", "go", "went"], correct: "will go"}, {q: "I have never ___ sushi.", a: ["eaten", "eat", "ate"], correct: "eaten"}, {q: "The cake ___ by mother.", a: ["was made", "is made", "made"], correct: "was made"}, {q: "He ___ studying when I called.", a: ["was", "were", "is"], correct: "was"}, {q: "They ___ arrive until 5 PM.", a: ["didn't", "don't", "won't"], correct: "didn't"}, {q: "She is the ___ student here.", a: ["smartest", "smarter", "smart"], correct: "smartest"} ]
+        [{q: "The cat is ___ on the mat.", a: ["sitting", "run", "eat"], correct: "sitting"}, {q: "I ___ a student.", a: ["am", "is", "are"], correct: "am"}, {q: "She ___ an apple.", a: ["eat", "eats", "eating"], correct: "eats"}, {q: "They ___ playing football.", a: ["is", "are", "am"], correct: "are"}, {q: "This ___ my book.", a: ["is", "are", "be"], correct: "is"}, {q: "We ___ happy today.", a: ["are", "am", "is"], correct: "are"}, {q: "He ___ to school.", a: ["go", "goes", "going"], correct: "goes"}, {q: "Birds can ___ in the sky.", a: ["fly", "swim", "run"], correct: "fly"}, {q: "My name ___ Ali.", a: ["is", "are", "am"], correct: "is"}, {q: "I have ___ red car.", a: ["a", "an", "the"], correct: "a"}],
+        [{q: "He ___ football yesterday.", a: ["play", "played", "playing"], correct: "played"}, {q: "She ___ to the market.", a: ["go", "went", "gone"], correct: "went"}, {q: "They ___ a movie last night.", a: ["watch", "watched", "watching"], correct: "watched"}, {q: "I ___ a book last week.", a: ["read", "reads", "reading"], correct: "read"}, {q: "We ___ at the park.", a: ["are", "was", "were"], correct: "were"}, {q: "He ___ his homework.", a: ["did", "do", "does"], correct: "did"}, {q: "It ___ a sunny day.", a: ["was", "is", "were"], correct: "was"}, {q: "They ___ home early.", a: ["come", "came", "coming"], correct: "came"}, {q: "I ___ a song.", a: ["sing", "sang", "sung"], correct: "sang"}, {q: "She ___ the door.", a: ["open", "opened", "opening"], correct: "opened"}],
+        [{q: "This book is mine. It is ___.", a: ["my", "mine", "me"], correct: "mine"}, {q: "___ is my teacher.", a: ["He", "Him", "His"], correct: "He"}, {q: "The elephant is very ___.", a: ["big", "small", "thin"], correct: "big"}, {q: "She is a ___ girl.", a: ["happy", "happily", "happiness"], correct: "happy"}, {q: "This is ___ pencil.", a: ["her", "she", "hers"], correct: "her"}, {q: "They are ___ friends.", a: ["our", "we", "us"], correct: "our"}, {q: "The sun is ___.", a: ["hot", "cold", "wet"], correct: "hot"}, {q: "I love ___ family.", a: ["my", "me", "mine"], correct: "my"}, {q: "The house is very ___.", a: ["clean", "cleans", "cleaning"], correct: "clean"}, {q: "It is ___ bag.", a: ["his", "him", "he"], correct: "his"}],
+        [{q: "The cat is ___ the table.", a: ["under", "on", "in"], correct: "under"}, {q: "I walk ___ school.", a: ["to", "at", "in"], correct: "to"}, {q: "I like coffee ___ tea.", a: ["and", "but", "or"], correct: "and"}, {q: "She is fast ___ I am slow.", a: ["but", "and", "so"], correct: "but"}, {q: "The keys are ___ the bag.", a: ["in", "on", "at"], correct: "in"}, {q: "He stands ___ me.", a: ["beside", "in", "on"], correct: "beside"}, {q: "We play ___ school.", a: ["after", "in", "at"], correct: "after"}, {q: "It is sunny ___ hot.", a: ["and", "but", "so"], correct: "and"}, {q: "Wait ___ me!", a: ["for", "at", "to"], correct: "for"}, {q: "Look ___ the picture.", a: ["at", "in", "on"], correct: "at"}],
+        [{q: "By the time he arrived, the train had ___.", a: ["left", "leave", "leaving"], correct: "left"}, {q: "She ___ reading for two hours.", a: ["has been", "is", "was"], correct: "has been"}, {q: "If I ___ you, I would go.", a: ["were", "was", "am"], correct: "were"}, {q: "They ___ finished the work.", a: ["have", "has", "had"], correct: "have"}, {q: "She ___ to London next year.", a: ["will go", "go", "went"], correct: "will go"}, {q: "I have never ___ sushi.", a: ["eaten", "eat", "ate"], correct: "eaten"}, {q: "The cake ___ by mother.", a: ["was made", "is made", "made"], correct: "was made"}, {q: "He ___ studying when I called.", a: ["was", "were", "is"], correct: "was"}, {q: "They ___ arrive until 5 PM.", a: ["didn't", "don't", "won't"], correct: "didn't"}, {q: "She is the ___ student here.", a: ["smartest", "smarter", "smart"], correct: "smartest"}]
     ];
 
     let currentLevel = 0, currentQ = 0, points = 0;
 
-    function playSound(type) {
+    function playHappySound() {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        osc.frequency.value = (type === 'win') ? 600 : 200;
-        osc.connect(ctx.destination);
-        osc.start(); osc.stop(ctx.currentTime + 0.2);
+        const notes = [523.25, 659.25, 783.99]; 
+        notes.forEach((freq, i) => {
+            const osc = ctx.createOscillator();
+            osc.frequency.value = freq;
+            osc.connect(ctx.destination);
+            osc.start(ctx.currentTime + (i * 0.1));
+            osc.stop(ctx.currentTime + (i * 0.1) + 0.15);
+        });
     }
 
     function loadGame() {
         if(currentLevel >= levels.length) {
-            alert("Game Completed! Final Score: " + points);
-            location.reload();
+            document.getElementById('question').innerText = "🎉 Congratulations! You are an English Master! 🎉";
+            document.getElementById('options').innerHTML = '<button class="btn" onclick="location.reload()">🔄 Play Again</button>';
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
             return;
         }
         const qData = levels[currentLevel][currentQ];
@@ -58,23 +105,28 @@
         optDiv.innerHTML = "";
         qData.a.forEach(opt => {
             let btn = document.createElement('button');
-            btn.className = "btn"; btn.innerText = opt;
+            btn.className = "btn"; btn.innerText = "⭐ " + opt;
             btn.onclick = () => check(opt);
             optDiv.appendChild(btn);
         });
     }
 
     function check(ans) {
+        const feedback = document.getElementById('feedback');
         if(ans === levels[currentLevel][currentQ].correct) {
-            points += 10; playSound('win');
+            points += 10;
+            playHappySound();
+            feedback.innerText = "Correct! ✨";
+            feedback.style.color = "#00b894";
+            currentQ++;
+            if(currentQ >= 10) { currentLevel++; currentQ = 0; }
+            setTimeout(loadGame, 800);
         } else {
-            playSound('lose');
-            alert("Oops! The correct answer was: " + levels[currentLevel][currentQ].correct);
+            feedback.innerText = "Try again! 💡";
+            feedback.style.color = "#d63031";
+            setTimeout(() => feedback.innerText = "", 1000);
         }
-        document.getElementById('score').innerText = "Total Points: " + points;
-        currentQ++;
-        if(currentQ >= 10) { currentLevel++; currentQ = 0; }
-        loadGame();
+        document.getElementById('score').innerText = "Points: " + points;
     }
 
     loadGame();
