@@ -238,11 +238,25 @@
   @keyframes confettiFall{
     to{transform:translateY(110vh) rotate(540deg); opacity:0.2;}
   }
+
+  .back-menu-btn{
+    position:fixed; left:50%; bottom:14px; transform:translateX(-50%);
+    z-index:30;
+    display:inline-flex; align-items:center; gap:6px;
+    background:rgba(255,255,255,0.92); color:var(--ink);
+    font-family:'Baloo 2', sans-serif; font-weight:700; font-size:0.82rem;
+    padding:9px 18px; border-radius:999px; text-decoration:none;
+    box-shadow:0 4px 0 rgba(31,58,95,0.12);
+    transition:transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .back-menu-btn:hover{transform:translateX(-50%) translateY(-2px);}
+  .back-menu-btn:active{transform:translateX(-50%) translateY(2px); box-shadow:0 1px 0 rgba(31,58,95,0.12);}
 </style>
 </head>
 <body>
 
 <div id="stage">
+  <a href="index.html" class="back-menu-btn">← Kembali ke Menu Utama</a>
   <div id="bgLayer">
     <div class="sun"></div>
     <div class="cloud cloud1"></div>
