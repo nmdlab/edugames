@@ -96,7 +96,11 @@
   }
   #coinCount{min-width:1.4em; text-align:left;}
   .coin-icon{font-size:1.15rem; filter:drop-shadow(0 1px 1px rgba(0,0,0,0.2));}
-  #levelPill{background:var(--grape); color:#fff; box-shadow:0 4px 0 #5A46D6;}
+  #levelPill{
+    background:var(--grape); color:#fff; box-shadow:0 4px 0 #5A46D6;
+    border:none; font-family:'Nunito', sans-serif; cursor:pointer;
+    transition:transform 0.12s ease;
+  }
   #progressWrap{
     flex:1; max-width:260px; height:16px; background:rgba(255,255,255,0.55);
     border-radius:999px; overflow:hidden; box-shadow:inset 0 2px 4px rgba(31,58,95,0.15);
@@ -130,12 +134,32 @@
     text-shadow:0 2px 6px rgba(31,58,95,0.25);
   }
 
-  .level-track{display:flex; justify-content:center; gap:10px; margin:18px 0 26px; flex-wrap:wrap;}
+  .level-track{display:flex; justify-content:center; gap:10px; margin:18px 0 10px; flex-wrap:wrap;}
   .level-dot{
     width:42px; height:42px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
     font-weight:800; color:#fff; font-family:'Baloo 2',sans-serif;
     box-shadow:0 3px 0 rgba(0,0,0,0.15);
+    border:none; font-size:1rem; cursor:pointer;
+    transition:transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .level-dot:hover{transform:translateY(-2px);}
+  .level-dot:active{transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,0.15);}
+  .level-hint{font-size:0.78rem; font-weight:700; color:#8A97AC; margin:0 0 20px;}
+
+  .level-strip{display:flex; justify-content:center; gap:8px; margin-bottom:16px;}
+  .level-mini{
+    width:36px; height:36px; border-radius:50%; border:none;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:0.9rem; color:#fff; font-family:'Baloo 2',sans-serif;
+    cursor:pointer; opacity:0.55; box-shadow:0 3px 0 rgba(0,0,0,0.15);
+    transition:transform 0.12s ease, opacity 0.15s ease, box-shadow 0.12s ease;
+  }
+  .level-mini:hover{transform:translateY(-2px); opacity:0.85;}
+  .level-mini:active{transform:translateY(2px);}
+  .level-mini.active{
+    opacity:1; transform:scale(1.22);
+    box-shadow:0 0 0 3px #fff, 0 4px 0 rgba(0,0,0,0.2);
   }
   .ld1{background:var(--leaf);} .ld2{background:#5AB4FF;} .ld3{background:var(--gold);}
   .ld4{background:var(--coral);} .ld5{background:var(--grape);}
@@ -240,12 +264,13 @@
     <p class="game-sub">Pengembaraan matematik merentasi 5 dunia</p>
     <div class="panel">
       <div class="level-track">
-        <div class="level-dot ld1">1</div>
-        <div class="level-dot ld2">2</div>
-        <div class="level-dot ld3">3</div>
-        <div class="level-dot ld4">4</div>
-        <div class="level-dot ld5">5</div>
+        <button class="level-dot ld1" onclick="startAtLevel(1)">1</button>
+        <button class="level-dot ld2" onclick="startAtLevel(2)">2</button>
+        <button class="level-dot ld3" onclick="startAtLevel(3)">3</button>
+        <button class="level-dot ld4" onclick="startAtLevel(4)">4</button>
+        <button class="level-dot ld5" onclick="startAtLevel(5)">5</button>
       </div>
+      <p class="level-hint">Ketik nombor untuk terus ke tahap itu</p>
       <p style="font-weight:800;color:#5A7196;margin:0 0 22px;">
         Jawab 20 soalan setiap tahap. Jawapan betul, kumpul syiling!
         Setiap dunia akan menjadi sedikit lebih mencabar.
@@ -257,6 +282,13 @@
   <!-- GAME SCREEN -->
   <div class="screen" id="gameScreen">
     <div id="questionWrap">
+      <div class="level-strip" id="levelStrip">
+        <button class="level-mini ld1" data-lvl="1" onclick="startAtLevel(1)">1</button>
+        <button class="level-mini ld2" data-lvl="2" onclick="startAtLevel(2)">2</button>
+        <button class="level-mini ld3" data-lvl="3" onclick="startAtLevel(3)">3</button>
+        <button class="level-mini ld4" data-lvl="4" onclick="startAtLevel(4)">4</button>
+        <button class="level-mini ld5" data-lvl="5" onclick="startAtLevel(5)">5</button>
+      </div>
       <div class="q-meta" id="qMeta">Soalan 1 / 20</div>
       <div class="q-card" id="qCard"><p id="qText">Memuatkan…</p></div>
       <div class="choice-grid" id="choiceGrid"></div>
@@ -486,6 +518,9 @@ function updateHud(){
   levelPill.textContent = 'Tahap ' + state.level;
   progressBar.style.width = Math.round((state.qIndex/QUESTIONS_PER_LEVEL)*100) + '%';
   coinCountEl.textContent = state.coins;
+  document.querySelectorAll('.level-mini').forEach(btn=>{
+    btn.classList.toggle('active', Number(btn.dataset.lvl) === state.level);
+  });
 }
 
 function nextQuestion(){
@@ -593,12 +628,16 @@ function spawnConfetti(){
   }
 }
 
-document.getElementById('startBtn').addEventListener('click', ()=>{
+function startAtLevel(lvl){
   ensureAudio();
   hud.style.display = 'flex';
   showScreen('game');
-  state.level = 1; state.qIndex = 0; state.levelCorrect = 0;
+  state.level = lvl; state.qIndex = 0; state.levelCorrect = 0;
   nextQuestion();
+}
+
+document.getElementById('startBtn').addEventListener('click', ()=>{
+  startAtLevel(1);
 });
 
 document.getElementById('nextLevelBtn').addEventListener('click', ()=>{
