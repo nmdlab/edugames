@@ -311,14 +311,16 @@ function tone(freq, start, dur, type='sine', vol=0.22){
 }
 function playCorrect(){
   ensureAudio();
-  tone(1046.5, 0, 0.07, 'square', 0.55);
-  tone(1568.0, 0.05, 0.30, 'square', 0.6);
-  tone(2093.0, 0.05, 0.16, 'triangle', 0.22);
+  tone(523.25, 0, 0.12, 'triangle', 0.45);
+  tone(659.25, 0.07, 0.12, 'triangle', 0.45);
+  tone(783.99, 0.14, 0.14, 'triangle', 0.48);
+  tone(1046.5, 0.21, 0.26, 'triangle', 0.5);
+  tone(1568.0, 0.21, 0.18, 'sine', 0.2);
 }
 function playWrong(){
   ensureAudio();
-  tone(220, 0, 0.18, 'sawtooth', 0.16);
-  tone(174.6, 0.12, 0.24, 'sawtooth', 0.16);
+  tone(392, 0, 0.16, 'sine', 0.45);
+  tone(311.1, 0.10, 0.24, 'sine', 0.4);
 }
 function playCoin(){
   ensureAudio();
